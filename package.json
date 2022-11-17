@@ -1,0 +1,22 @@
+{
+  "name": "web-peticoes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "joi": "^17.7.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.11.0",
+    "supertest": "^6.3.1"
+  },
+  "devDependencies": {
+    "jest": "^29.3.1"
+  }
+}
