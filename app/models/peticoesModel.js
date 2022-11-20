@@ -73,16 +73,13 @@ module.exports = class PeticaoModel {
       const id = { _id: new ObjectId(peticaoId) };
       const queryToUpdate = { $push: { assinatura: nomeUser } };
       const queryToFind = { _id: new ObjectId(peticaoId), assinatura: nomeUser };
+      const findPeticao = await client.db("peticoes").collection("peticoes").findOne(id);
       const hasSing = await client.db("peticoes").collection("peticoes").findOne(queryToFind);
 
-      if (hasSing != null) {
-        return hasSing;
-      }
+      if (hasSing != null) return hasSing;
+      if(!findPeticao) return null;
 
-      return await client
-        .db("peticoes")
-        .collection("peticoes")
-        .updateOne(id, queryToUpdate);
+      return await client.db("peticoes").collection("peticoes").updateOne(id, queryToUpdate);
     } catch (error) {
       console.log(`[authUser] Error: ${error}`);
     }
@@ -92,6 +89,10 @@ module.exports = class PeticaoModel {
     try {
       const id = { _id: new ObjectId(peticaoId) };
       const query = { $pull: { assinatura: nomeUser } };
+      const findPeticao = await client.db("peticoes").collection("peticoes").findOne(id);
+
+      if(!findPeticao) return null;
+
       return await client
         .db("peticoes")
         .collection("peticoes")

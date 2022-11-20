@@ -46,8 +46,11 @@ module.exports = class Peticoes {
 
   static async addPeticao(req, res, next) {
     const token = req.headers["x-access-token"];
-    jwt.verify(token, SECRET, (err, decoded) => {
-      if (err) return res.status(401).end();
+    jwt.verify(token, SECRET, (error, decoded) => {
+      if (error) {
+        res.status(401).json({ error: error });
+        return;
+      }
 
       req.nome = decoded.nome;
     });
@@ -71,16 +74,20 @@ module.exports = class Peticoes {
   }
 
   static async updatePeticao(req, res, next) {
+    const token = req.headers["x-access-token"];
+    jwt.verify(token, SECRET, (error, decoded) => {
+      if (error) {
+        return res.status(401).send({ error: error });
+      }
+      req.nome = decoded.nome;
+    });
     try {
+      if(!req.nome) return; 
       const updatePeticao = await Peticao.updatePeticao(
         req.params.id,
         req.body
-      );
-
-      if (!updatePeticao) {
-        res.status(404).json(`Petição não encontrada`);
-        return;
-      }
+      );  
+      if(!updatePeticao) return res.status(404).json({ error: 'Petição não encontrada' }); 
       res.status(200).json(updatePeticao);
     } catch (error) {
       res.status(500).json({ error: error });
@@ -88,12 +95,17 @@ module.exports = class Peticoes {
   }
 
   static async deletePeticao(req, res, next) {
-    try {
-      const deletePeticao = await Peticao.deletePeticao(req.params.id);
-      if (!deletePeticao) {
-        res.status(404).json(`Petição não encontrada`);
-        return;
+    const token = req.headers["x-access-token"];
+    jwt.verify(token, SECRET, (error, decoded) => {
+      if (error) {
+        return res.status(401).send({ error: error });
       }
+      req.nome = decoded.nome;
+    });
+    try {    
+      if(!req.nome) return; 
+      const deletePeticao = await Peticao.deletePeticao(req.params.id);
+      if(!deletePeticao) return res.status(404).json({ error: 'Petição não encontrada' });
       res.status(200).json(deletePeticao);
     } catch (error) {
       res.status(500).json({ error: error });
@@ -112,6 +124,10 @@ module.exports = class Peticoes {
     }
     try {
       const authenticated = await Peticao.authUser(req.body);
+      if (!authenticated) {
+        res.status(404).json(`Usuário não encontrado`);
+        return;
+      }
       res.status(200).json(authenticated);
     } catch (error) {
       res.status(500).json({ error: error });
@@ -122,18 +138,16 @@ module.exports = class Peticoes {
     const token = req.headers["x-access-token"];
     jwt.verify(token, SECRET, (error, decoded) => {
       if (error) {
-        res.status(401).json({ error: error });
-        return;
+        return res.status(401).send({ error: error });
       }
       req.nome = decoded.nome;
     });
-
     try {
-      if (req.nome != null) {
-        const signPeticao = await Peticao.signPeticao(req.params.id, req.nome);
-        console.log(signPeticao);
-        res.status(200).json(signPeticao);
-      }
+      if(!req.nome) return;
+      const signPeticao = await Peticao.signPeticao(req.params.id, req.nome);
+      if(!signPeticao) return res.status(404).json({ error: 'Petição não encontrada' });
+      res.status(200).json(signPeticao);
+      
     } catch (error) {
       res.status(500).json({ error: error });
     }
@@ -143,16 +157,16 @@ module.exports = class Peticoes {
     const token = req.headers["x-access-token"];
     jwt.verify(token, SECRET, (error, decoded) => {
       if (error) {
-        res.status(401).json({ error: error });
-        return;
+        return res.status(401).send({ error: error });
       }
       req.nome = decoded.nome;
     });
     try {
-      if (req.nome != null) {
-        const unsignPeticao = await Peticao.removeSign(req.params.id, req.nome);
-        res.status(200).json(unsignPeticao);
-      }
+      if(!req.nome) return;
+      const unsignPeticao = await Peticao.removeSign(req.params.id, req.nome);
+      if(!unsignPeticao) return res.status(404).json({ error: 'Petição ou assinatura não encontrada' });
+      res.status(200).json(unsignPeticao);
+      
     } catch (error) {
       res.status(500).json({ error: error });
     }
